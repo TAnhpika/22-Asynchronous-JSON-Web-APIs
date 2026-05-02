@@ -1,20 +1,3 @@
-// tự động tải thêm nội dung khi scroll xún ở yt / fb
-
-/**
- * XHR - XML HttpRequest
- * Có thể xử lý cả xml và JSON
- * Gửi / Nhận data k cần reload
- */
-
-// xhr.onreadystatechange = function () {
-//     // 2: cb gửi, 3: đang gửi, 4: đã gửi và nhận response
-//     // 200 - 400: gửi thành công
-//     if (xhr.readyState === 4 && xhr.status >= 200 && xhr.status < 400) {
-//         console.log(xhr.responseText);
-//     }
-// };
-
-//"./partials/header.html"
 function sendRequest(method = "GET", url, callback) {
     const xhr = new XMLHttpRequest();
     xhr.open(method, url, true); // false: gửi đồng bộ - lag -> đơ => true - async
@@ -42,13 +25,31 @@ sendRequest("GET", "./partials/footer.html", (responseText) => {
     footer.innerHTML = responseText;
 });
 
-sendRequest("GET", "https://api01.f8team.dev/api/products", (responseText) => {
-    const response = JSON.parse(responseText);
-    const products = response.data.items;
+// callback hell: xảy ra khi công việc trước là đầu vào của công việc tiếp theo
+sendRequest(
+    "GET",
+    "https://api01.f8team.dev/api/address/provinces",
+    (response) => {
+        const provinces = JSON.parse(response).data;
+        const firstProvince = provinces[0];
 
-    products.forEach((product) => {
-        const item = document.createElement("li");
-        item.textContent = product.title
-        productsList.appendChild(item)
-    });
-});
+        sendRequest(
+            "GET",
+            `https://api01.f8team.dev/api/address/districts?province_id=${firstProvince.province_id}`,
+            (response) => {
+                const districts = JSON.parse(response).data;
+                const firstDistrict = districts[0];
+
+                sendRequest(
+                    "GET",
+                    `https://api01.f8team.dev/api/address/wards?district_id=${firstDistrict.district_id}`,
+                    (response) => {
+                        const wards = JSON.parse(response).data;
+                        const firstWards = wards[0];
+                        console.log(firstWards);
+                    },
+                );
+            },
+        );
+    },
+);
