@@ -1,8 +1,11 @@
-/**
- * Lý thuyết:
- * - catch chỉ bắt đc lỗi khi promise reject / lỗi trong callback của then
- */
 function sendRequest(method = "GET", url) {
+    // if ("...") {
+    //     return Promise.reject('Error..');
+    // }
+
+    // Fake
+    // return Promise.resolve([1, 2, 3, 4]);
+
     return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.open(method, url, true);
@@ -20,7 +23,9 @@ function sendRequest(method = "GET", url) {
                         reject("Invalid JSON format");
                     }
                 } else {
+                    // setTimeout(() => {
                     resolve(xhr.responseText);
+                    // }, 3000);
                 }
             } else {
                 reject(`HTTP code: ${xhr.status}`);
@@ -32,61 +37,115 @@ function sendRequest(method = "GET", url) {
     });
 }
 
+// const promise = sendRequest("...");
+// promise.then("...").catch("...");
+
+// Fake
+// sendRequest().then((result) => console.log(result));
+
 const header = document.querySelector(".header");
 const footer = document.querySelector(".footer");
 const productsList = document.querySelector(".products-list");
 
-sendRequest("GET", "./partials/header.html")
-    .then((responseText) => {
-        header.innerHTML = responseText;
-    })
-    .catch((error) => {
-        console.log(error);
-    });
+// sendRequest("GET", "./partials/header.html")
+//     .then((responseText) => {
+//         header.innerHTML = responseText;
+//     })
+//     .catch((error) => {
+//         console.log(error);
+//     });
 
-sendRequest("GET", "./partials/footer.html")
-    .then((responseText) => {
-        footer.innerHTML = responseText;
-    })
-    .catch((error) => {
-        console.log(error);
-    });
+// sendRequest("GET", "./partials/footer.html")
+//     .then((responseText) => {
+//         footer.innerHTML = responseText;
+//     })
+//     .catch((error) => {
+//         console.log(error);
+//     });
 
-// sendRequest("GET", "https://api01.f8team.dev/api/products").then(
-//     (responseText) => {
-//         const response = JSON.parse(responseText);
-//         const products = response.data.items;
+// const timeoutPromise = new Promise((resolve, reject) => {
+//     setTimeout(() => reject("Error."), 2000);
+// });
 
-//         products.forEach((product) => {
-//             const item = document.createElement("li");
-//             item.textContent = product.title;
-//             productsList.appendChild(item);
-//         });
-//     },
-// );
+/**
+ * Promise.all:
+ * chờ all promise resolve thì mới vào then. reject k vào -> block rendering
+ * dùng khi có các async có thể thực hiện song song & đảm bảo tất cả phải thành công
+ */
+// Promise.all([
+//     sendRequest("GET", "./partials/header.html"),
+//     sendRequest("GET", "./partials/footer.html"),
+//     timeoutPromise,
+// ])
+//     .then((result) => {
+//         header.innerHTML = result[0];
+//         footer.innerHTML = result[1];
+//     })
+//     .catch((error) => {
+//         console.log(error);
+//     });
 
-function getFirstProvince() {
-    return sendRequest(
-        "GET",
-        "https://api01.f8team.dev/api/address/provinces",
-    ).then((result) => result.data[0]);
-}
+/**
+ * Promise.allSettled:
+ * chờ tất cả đc resolve / reject
+ */
+// Promise.allSettled([
+//     sendRequest("GET", "./partials/header.html"),
+//     sendRequest("GET", "./partials/footer.html"),
+//     timeoutPromise,
+// ])
+//     .then((result) => {
+//         console.log(result);
+//     })
+//     .catch((error) => {
+//         console.log(error);
+//     });
 
-function getFirstDistrict(provinceId) {
-    return sendRequest(
-        "GET",
-        `https://api01.f8team.dev/api/address/districts?province_id=${provinceId}`,
-    ).then((result) => result.data[0]);
-}
+/**
+ * Promise.race:
+ * promise đầu tiên trả về resolve / reject
+ * -> đặt giới hạn tg cho các promise. Nếu k xong trong (2)s thì sẽ k đc render
+ */
+// Promise.race([
+//     sendRequest("GET", "./partials/header.html"),
+//     sendRequest("GET", "./partials/footer.html"),
+//     timeoutPromise,
+// ])
+//     .then((result) => {
+//         console.log(result);
+//     })
+//     .catch((error) => {
+//         console.log(error);
+//     });
 
-function getFirstWard(districtId) {
-    return sendRequest(
-        "GET",
-        `https://api01.f8team.dev/api/address/wards?district_id=${districtId}`,
-    ).then((result) => result.data[0]);
-}
+/**
+ * Muốn luôn trả về 1 promise
+ */
+// Promise.resolve("Success").then((result) => console.log(result));
+// Promise.reject("Error").catch((error) => console.log(error));
 
-getFirstProvince()
-    .then((province) => getFirstDistrict(province.province_id))
-    .then((district) => getFirstWard(district.district_id))
-    .then((result) => console.log(result));
+// function getFirstProvince() {
+//     return sendRequest(
+//         "GET",
+//         "https://api01.f8team.dev/api/address/provinces",
+//     ).then((result) => result.data[0]);
+// }
+
+// function getFirstDistrict(provinceId) {
+//     return sendRequest(
+//         "GET",
+//         `https://api01.f8team.dev/api/address/districts?province_id=${provinceId}`,
+//     ).then((result) => result.data[0]);
+// }
+
+// function getFirstWard(districtId) {
+//     return sendRequest(
+//         "GET",
+//         `https://api01.f8team.dev/api/address/wards?district_id=${districtId}`,
+//     ).then((result) => result.data[0]);
+// }
+
+// getFirstProvince()
+//     .then((province) => getFirstDistrict(province.province_id))
+//     .then((district) => getFirstWard(district.district_id))
+//     .then((result) => console.log(result));
