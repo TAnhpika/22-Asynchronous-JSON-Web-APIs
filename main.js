@@ -1,24 +1,10 @@
-/**
- * finally: dù success / fail vẫn chạy callback
- */
+console.log(1);
 
-function fetchData() {
-    return new Promise((resolve, reject) => {
-        setTimeout(() => {
-            resolve();
-        }, 1000);
-    });
-}
+// việc gọi callback của .then .catch .finally chạy bất đồng bộ
+// khi nhận hàm -> đưa vào list bất đồng bộ r chạy tiếp
+// khi chạy xong hết thì mới check list và chạy cấc hàm async
+Promise.resolve().finally(() => {
+    console.log(2);
+});
 
-console.log("Hiện loading");
-
-fetchData()
-    .then(() => {
-        console.log("Hiện data");
-    })
-    .catch(() => {
-        console.log("Báo lỗi");
-    })
-    .finally(() => {
-        console.log("Tắt loading");
-    });
+console.log(3);
